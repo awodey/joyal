@@ -3,17 +3,39 @@
 import «Joyal».Basic
 import Mathlib.Order.Birkhoff
 import Mathlib.Order.Heyting.Hom
+import Mathlib.Order.Category.BddDistLat
 #check Lattice
 #check HeytingAlgebra
 #check HeytingHom
+#check DistribLattice
+#check BoundedLatticeHom
 
 def DownSet (P : Type)[PartialOrder P] : Type :=
-{ A : Set P // ∀ a ∈ A , ∀ b : P , b ≤ a → b ∈ A }
+{ A : Set P // ∀ a ∈ A , ∀ b ≤ a , b ∈ A }
 
-instance (P : Type)[PartialOrder P] :
-HeytingAlgebra (DownSet P) where
-  sup := sorry
-  le := sorry
+instance (P : Type)[PartialOrder P] : LE (DownSet P)
+  where le s t := s.1 ∪ t.1 = t.1
+
+theorem union_down (P : Type)[PartialOrder P] {s t : DownSet P} :
+   ∀ a ∈ s.1 ∪ t.1 , ∀ b ≤ a , b ∈ s.1 ∪ t.1 := by
+     intro x x2 b b2
+     cases x2
+     case inl h =>
+      have h2 : b ∈ s.1 := by
+        apply s.2 x
+        apply h
+        apply b2
+      apply Or.inl h2
+     case inr h =>
+      have h3 : b ∈ t.1 := by
+        apply t.2 x
+        apply h
+        apply b2
+      apply Or.inr h3
+
+instance (P : Type)[PartialOrder P] : HeytingAlgebra (DownSet P)
+  where
+  sup s t :=  ⟨s.1 ∪ t.1 , union_down P⟩
   le_refl := sorry
   le_trans := sorry
   le_antisymm := sorry
@@ -33,35 +55,83 @@ HeytingAlgebra (DownSet P) where
   compl := sorry
   himp_bot := sorry
 
+def conserv {A : Type}[HeytingAlgebra A] {B : Type}[HeytingAlgebra B]
+  (h : HeytingHom A B) : Prop := ∀ a : A , h a = ⊤ → a = ⊤
 
 theorem joyal_rep :
 ∀ (A : Type)[HeytingAlgebra A],
-∃ P : Type, ∃ po : PartialOrder P,
-∃ j : HeytingHom A (DownSet P),
-Function.Injective j
+∃ (P : Type), ∃ (po : PartialOrder P),
+∃ (j : HeytingHom A (DownSet P)),
+conserv j := sorry
+
+/- proof:
+Let Jop = DLat(H,2) be the poset of prime filters
+in H, and consider the transposed evaluation map,
+η : H −→ Down(DLat(H, 2)op) ∼= 2DLat(H,2)
+given by
+η(p)={F|p∈F prime}∼={f:H→2|f(p)=1}.
+Clearly η(0) = ∅ and η(1) = DLat(H, 2),
+and similarly for the other meets and joins,
+so η is a lattice homomorphism.
+Moreover, if p ̸= q ∈ H then we have that η(p) ̸= η(q),
+by the Prime Ideal Theorem.
+Thus it only remains to show that
+η(p ⇒ q) = η(p)⇒η(q).
+Unwinding the definitions, this means that,
+for all f ∈ DLat(H, 2),
+f(p⇒q)=1 iff forall g≥f, g(p)=1 implies g(q)=1.
+Equivalently, for all prime filters F ⊆ H,
+p⇒q∈F iff for all prime G⊇F, p∈G implies q∈G.
+Now if p ⇒ q ∈ F, then for all (prime) filters G ⊇ F,
+also p ⇒ q ∈ G, and so p ∈ G implies q ∈ G,
+since (p ⇒ q) ∧ p ≤ q.
+Conversely, suppose p⇒q /∈F,
+and we seek a prime filter G⊇F with p∈G but q ̸∈ G.
+Consider the filter
+F [p] = {x ∧ p ≤ h ∈ H | x ∈ F } ,
+which is the join of F and ↑(p) in the poset of filters.
+If q ∈ F[p], then x∧p ≤ q for some x∈F,
+whence x≤p⇒q, and so p⇒q∈F,
+contrary to assumption;
+thus q̸∈F[p].
+By the Prime Ideal Theorem again
+(applied to the distributive lattice Hop)
+there is a prime filter G ⊇ F[p] with q ̸∈ G.
+-/
+
+/- We need Birkhoff's Prime Ideal Theorem for Distributive Lattices:
+
+Theorem. Let D be a distributive lattice.
+For any d ∈ D \ {1}, there exists a homomorphism x : D → 2
+such that x(d) = 0.
+-/
+
+theorem birkhoff_pit :
+∀ (D : BddDistLat),
+∀ (d : D), d ≠ ⊤ →
+∃ (x : BoundedLatticeHom D Bool), x d = ⊥
 := sorry
 
-/- I'm going to need Birkhoff's Prime Ideal Theorem for Distributive Lattices. -/
-
-/- Lemma. Let H be a Heyting algebra.
-For any a ∈ H \ {1}, there exists a homomorphism x : H → 2
-such that x(a) = 0.
-
-Proof. By Zorn’s lemma, let I be a maximal element of
-the set of proper ideals of A which contain a.
-Define x(b) = 0 iff b ∈ I.
-Clearly, x(a) = 0; we need to check that x is a homomorphism.
-The equalities x(0) = 0 and x(b ∨ b′) = x(b) ∨ x(b′)
-are easy to check from the defining properties of an ideal.
-To see that x(¬b) = ¬x(b) for any b ∈ A,
-the crucial observation is that if b ̸∈ I and ¬b ̸∈ I,
-then it is possible to enlarge I by adding b to it
-and generating an ideal I′,
-and I′ will still be proper because ¬b ̸∈ I.
-By maximality of I this is impossible.
-We thus get that, for any b ∈ A, one of b and ¬b must be in I,
-and they can never be both in I,
-since that would give 1 = b ∨ ¬b in I,
-again contradicting that I is proper.
-It now follows from the definitions that x(¬b) = ¬x(b).
+/- Proof. It suffices to prove it for the case I = (0).
+We shall use Zorn’s Lemma: a poset in which every chain
+has an upper bound has maximal elements.
+Consider the poset I\x of “ideals I without x”, x ̸∈ I,
+ordered by inclusion.
+The union of any chain I0 ⊆ I1 ⊆ ... in I\x
+is clearly also in I\x,
+so we have (at least one) maximal element M ∈ I\x.
+We claim that M ⊆ D is prime.
+To that end, take a,b∈D with a∧b ∈ M.
+If a,b/∈M, let M[a]={n≤m∨a|m∈M},
+the ideal join of M and ↓(a), and similarly for M[b].
+Since M is maximal without x, we therefore have
+x∈M[a] and x∈M[b].
+Thus let x ≤ m ∨ a and x ≤ m′ ∨ b
+for some m,m′ ∈ M.
+Then x∨m′ ≤ m ∨ m′ ∨ a and x∨m ≤ m ∨ m′ ∨ b,
+so taking meets on both sides gives
+(x∨m′)∧(x∨m)≤(m∨m′ ∨a)∧(m∨m′ ∨b)=(m∨m′)∨(a∧b).
+Since the righthand side is in the ideal M,
+so is the left. But then x ≤ x∨(m∧m′) is also
+in M, contrary to our assumption that M ∈ I\x.
 -/
