@@ -13,7 +13,7 @@ def DownSet (P : Type)[PartialOrder P] : Type :=
 instance (P : Type)[PartialOrder P] : LE (DownSet P)
   where le s t := s.1 ∪ t.1 = t.1
 
-theorem union_down (P : Type)[PartialOrder P] {s t : DownSet P} :
+theorem unionDownSets (P : Type)[PartialOrder P] {s t : DownSet P} :
    ∀ a ∈ s.1 ∪ t.1 , ∀ b ≤ a , b ∈ s.1 ∪ t.1 := by
      intro x x2 b b2
      cases x2
@@ -32,7 +32,7 @@ theorem union_down (P : Type)[PartialOrder P] {s t : DownSet P} :
 
 instance (P : Type)[PartialOrder P] : HeytingAlgebra (DownSet P)
   where
-  sup s t :=  ⟨s.1 ∪ t.1 , union_down P⟩
+  sup s t :=  ⟨s.1 ∪ t.1 , unionDownSets P⟩
   le_refl := sorry
   le_trans := sorry
   le_antisymm := sorry
