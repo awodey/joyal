@@ -1,11 +1,6 @@
 import Mathlib.Order.Birkhoff
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.Category.BddDistLat
-#check Lattice
-#check HeytingAlgebra
-#check HeytingHom
-#check DistribLattice
-#check BoundedLatticeHom
 
 /- We need Birkhoff's Prime Ideal Theorem for Distributive Lattices:
 
