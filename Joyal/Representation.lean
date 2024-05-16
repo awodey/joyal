@@ -43,9 +43,9 @@ theorem joyal_rep :
 conserv j := sorry
 
 /- proof:
-Let Jop = DLat(H,2) be the poset of prime filters
+Let J = DLat(H,2)^op be the poset of prime filters
 in H, and consider the transposed evaluation map,
-η : H −→ Down(DLat(H, 2)op) ∼= 2DLat(H,2)
+η : H −→ Down(DLat(H,2)op) ∼= Pos(DLat(H,2), 2)
 given by
 η(p)={F|p∈F prime}∼={f:H→2|f(p)=1}.
 Clearly η(0) = ∅ and η(1) = DLat(H, 2),
@@ -71,8 +71,8 @@ which is the join of F and ↑(p) in the poset of filters.
 If q ∈ F[p], then x∧p ≤ q for some x∈F,
 whence x≤p⇒q, and so p⇒q∈F,
 contrary to assumption;
-thus q̸∈F[p].
+thus q/∈F[p].
 By the Prime Ideal Theorem again
-(applied to the distributive lattice Hop)
+(applied to the distributive lattice H^op)
 there is a prime filter G ⊇ F[p] with q ̸∈ G.
 -/
