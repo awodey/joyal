@@ -1,7 +1,9 @@
 import Mathlib.Order.Birkhoff
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.Category.BddDistLat
+import Mathlib.Order.Zorn
 
+/- don't need DownSets after all because LowerSet is already done
 def DownSet (P : Type)[PartialOrder P] : Type :=
 { A : Set P // ∀ a ∈ A , ∀ b ≤ a , b ∈ A }
 
@@ -24,28 +26,18 @@ theorem unionDownSets (P : Type)[PartialOrder P] {s t : DownSet P} :
         apply h
         apply b2
       apply Or.inr h3
+-/
 
-instance (P : Type)[PartialOrder P] : HeytingAlgebra (DownSet P)
+/- we do know that the type LowerSet P is a completely distributive lattice,
+so in order to be a HA it just needs a Heyting implication -/
+
+instance (P : Type)[PartialOrder P] : HeytingAlgebra (LowerSet P)
   where
-  sup s t :=  ⟨s.1 ∪ t.1 , unionDownSets P⟩
-  le_refl := sorry
-  le_trans := sorry
-  le_antisymm := sorry
-  le_sup_left := sorry
-  le_sup_right := sorry
-  sup_le := sorry
-  inf := sorry
-  inf_le_left := sorry
-  inf_le_right := sorry
-  le_inf := sorry
-  top := sorry
-  le_top := sorry
-  himp := sorry
+  himp a b := sSup { x : LowerSet P // x ⊓ a ≤ b } sorry
   le_himp_iff := sorry
-  bot := sorry
-  bot_le := sorry
-  compl := sorry
+  compl a := a ⇨ ⊥ sorry
   himp_bot := sorry
+
 
 def conserv {A : Type}[HeytingAlgebra A] {B : Type}[HeytingAlgebra B]
   (h : HeytingHom A B) : Prop := ∀ a : A , h a = ⊤ → a = ⊤
