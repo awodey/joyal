@@ -4,36 +4,6 @@ import Mathlib.Order.Category.BddDistLat
 import Mathlib.Order.Zorn
 import Mathlib.Order.CompleteBooleanAlgebra
 
-/- don't need DownSets after all because LowerSet is already done
-def DownSet (P : Type)[PartialOrder P] : Type :=
-{ A : Set P // ∀ a ∈ A , ∀ b ≤ a , b ∈ A }
-
-instance (P : Type)[PartialOrder P] : LE (DownSet P)
-  where le s t := s.1 ∪ t.1 = t.1
-
-theorem unionDownSets (P : Type)[PartialOrder P] {s t : DownSet P} :
-   ∀ a ∈ s.1 ∪ t.1 , ∀ b ≤ a , b ∈ s.1 ∪ t.1 := by
-     intro x x2 b b2
-     cases x2
-     case inl h =>
-      have h2 : b ∈ s.1 := by
-        apply s.2 x
-        apply h
-        apply b2
-      apply Or.inl h2
-     case inr h =>
-      have h3 : b ∈ t.1 := by
-        apply t.2 x
-        apply h
-        apply b2
-      apply Or.inr h3
--/
-
-/- we do know that the type LowerSet P is a completely distributive lattice,
-so in order to be a HA it just needs a Heyting implication -/
-
-#check Set
-
 set_option autoImplicit false
 
 instance (P : Type) [PartialOrder P] : HImp (LowerSet P) where
@@ -58,7 +28,7 @@ instance (P : Type) [PartialOrder P] : OrderBot (LowerSet P) where
   bot_le := by simp
 
 instance (P : Type) [PartialOrder P] : HasCompl (LowerSet P) where
-  compl := (fun A => A ⇨ ⊥)
+  compl A :=  A ⇨ ⊥
 
 instance (P : Type) [PartialOrder P] : HeytingAlgebra (LowerSet P) where
   himp_bot := by simp [compl]
