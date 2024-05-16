@@ -33,7 +33,7 @@ so in order to be a HA it just needs a Heyting implication -/
 
 instance (P : Type)[PartialOrder P] : HeytingAlgebra (LowerSet P)
   where
-  himp a b := sSup { x : LowerSet P // x ⊓ a ≤ b } sorry
+  himp a b := ⨆ { x : LowerSet P // x ⊓ a ≤ b } sorry
   le_himp_iff := sorry
   compl a := a ⇨ ⊥ sorry
   himp_bot := sorry
@@ -45,7 +45,7 @@ def conserv {A : Type}[HeytingAlgebra A] {B : Type}[HeytingAlgebra B]
 theorem joyal_rep :
 ∀ (A : Type)[HeytingAlgebra A],
 ∃ (P : Type), ∃ (po : PartialOrder P),
-∃ (j : HeytingHom A (DownSet P)),
+∃ (j : HeytingHom A (LowerSet P)),
 conserv j := sorry
 
 /- proof:
