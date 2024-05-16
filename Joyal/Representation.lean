@@ -1,11 +1,6 @@
 import Mathlib.Order.Birkhoff
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.Category.BddDistLat
-#check Lattice
-#check HeytingAlgebra
-#check HeytingHom
-#check DistribLattice
-#check BoundedLatticeHom
 
 def DownSet (P : Type)[PartialOrder P] : Type :=
 { A : Set P // ∀ a ∈ A , ∀ b ≤ a , b ∈ A }
