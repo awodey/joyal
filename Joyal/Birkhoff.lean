@@ -1,10 +1,32 @@
-import Mathlib.Order.Birkhoff
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.Category.BddDistLat
+import Mathlib.Order.PrimeIdeal
+
+/- import Mathlib.Order.PrimeSeparator -/
+
+#check PrimeIdeal
+#check HeytingAlgebra
+
+/-
+Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
+-/
+
+def {A : type} [BddDistLat A]{B : type} [BddDistLat B] {h: BoundedLatticeHom A B}:
+Ikernel h := { x : A | h x = ⊥ }
+
+def {A : type} [BddDistLat A]{B : type} [BddDistLat B] {h: BoundedLatticeHom A B}:
+Fkernel h := { x : A | h x = ⊤ }
+
+
+theorem kernel_is_prime_ideal (D: BddDistLat):
+∀ (h: BoundedLatticeHom D Bool), IsPrimeIdeal Ikernel := sorry
+
+theorem prime_ideal_is_kernel (D: BddDistLat):
+∀ (I : PrimeIdeal) ∃ (h: BoundedLatticeHom D Bool), IsPrimeIdeal (kernel h)
 
 /- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
-Theorem. Let D be a distributive lattice.
-For any d ∈ D\{⊥}, there exists a lattice homomorphism h : D → 2
+Theorem. Let D be a bounded distributive lattice.
+For any d ∈ D, if d ≠ ⊥, then there is a lattice homomorphism h : D → 2
 such that h(d) = ⊤.
 -/
 
@@ -18,11 +40,6 @@ theorem birkhoff_pit :
 DistribLattice.prime_ideal_of_disjoint_filter_ideal
 in
 mathlib4/Mathlib/Order/PrimeSeparator.lean
--/
-
-/-
-Add a lemma that monotone maps P → Bool correspond to upper/lower sets,
-and (bdd) lattice homomorphisms D → Bool correspond to prime ideals/filters.
 -/
 
 /- Proof.
