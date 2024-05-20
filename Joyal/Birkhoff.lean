@@ -4,22 +4,41 @@ import Mathlib.Order.PrimeIdeal
 
 /- import Mathlib.Order.PrimeSeparator -/
 
-#check PrimeIdeal
-#check HeytingAlgebra
-
 /-
 Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
 -/
 
-def {A : type} [BddDistLat A]{B : type} [BddDistLat B] {h: BoundedLatticeHom A B}:
-Ikernel h := { x : A | h x = ⊥ }
+set_option autoImplicit false
 
-def {A : type} [BddDistLat A]{B : type} [BddDistLat B] {h: BoundedLatticeHom A B}:
-Fkernel h := { x : A | h x = ⊤ }
+variable {A : Type*} [Lattice A] [BoundedOrder A]
+variable {B : Type*} [Lattice B] [BoundedOrder B]
 
+def ikernel (h : A → B) := { x : A | h x = ⊥ }
 
-theorem kernel_is_prime_ideal (D: BddDistLat):
-∀ (h: BoundedLatticeHom D Bool), IsPrimeIdeal Ikernel := sorry
+def Ikernel (h : BoundedLatticeHom A B) : Order.Ideal A where
+  carrier := ikernel h
+  lower' := by
+    simp [ikernel]
+    intro a b b_le_a a_in_ker
+    apply eq_bot_mono _ a_in_ker
+    apply OrderHomClass.mono ; assumption
+  nonempty' := ⟨⊥, map_bot h⟩
+  directed' := fun x hx y hy => by
+    dsimp [ikernel] at *
+    use (x ⊔ y) ; simp [hx, hy]
+
+instance instIsPrimeIkernel (h : BoundedLatticeHom A Bool) : Order.Ideal.IsPrime (Ikernel h) := by
+  have: Order.Ideal.IsProper (Ikernel h) := by
+    constructor
+    intro H
+    have Mario1 : (SetLike.coe (Ikernel h) ) ⊤ := by simp [H] ; exact True.intro
+    have G : h ⊤ = ⊥ := by exact Mario1
+    rw [map_top] at G
+    exact (Bool.eq_not_self ⊤).mp G
+  apply Order.Ideal.IsPrime.of_mem_or_mem
+  intro x y
+  simp [Ikernel, ikernel, Membership.mem, Set.Mem, SetLike.coe, setOf]
+  cases (h x) <;> simp
 
 theorem prime_ideal_is_kernel (D: BddDistLat):
 ∀ (I : PrimeIdeal) ∃ (h: BoundedLatticeHom D Bool), IsPrimeIdeal (kernel h)
