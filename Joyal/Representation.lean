@@ -6,36 +6,6 @@ import Mathlib.Order.CompleteBooleanAlgebra
 
 set_option autoImplicit false
 
-instance (P : Type) [PartialOrder P] : HImp (LowerSet P) where
-  himp A B := sSup { X | X ⊓ A ≤ B }
-
-instance (P : Type) [PartialOrder P] : GeneralizedHeytingAlgebra (LowerSet P)
-  where
-  le_himp_iff := by
-    intro A B C
-    apply Iff.intro
-    · intro AleB
-      trans (B ⇨ C) ⊓ B
-      · exact inf_le_inf_right B AleB
-      · rw [inf_comm]
-        apply le_trans (Order.Frame.inf_sSup_le_iSup_inf B { X | X ⊓ B ≤ C })
-        simp [sSup_le, inf_comm]
-    · intro
-      apply le_sSup
-      assumption
-
-instance (P : Type) [PartialOrder P] : OrderBot (LowerSet P) where
-  bot_le := by simp
-
-instance (P : Type) [PartialOrder P] : HasCompl (LowerSet P) where
-  compl A :=  A ⇨ ⊥
-
-instance (P : Type) [PartialOrder P] : HeytingAlgebra (LowerSet P) where
-  himp_bot := by simp [compl]
-
-def conserv {A : Type}[HeytingAlgebra A] {B : Type}[HeytingAlgebra B]
-  (h : HeytingHom A B) : Prop := ∀ a : A , h a = ⊤ → a = ⊤
-
 theorem joyal_rep :
 ∀ (A : Type)[HeytingAlgebra A],
 ∃ (P : Type), ∃ (po : PartialOrder P),
