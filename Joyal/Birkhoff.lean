@@ -3,14 +3,18 @@ import Mathlib.Order.Category.BddDistLat
 import Mathlib.Order.PrimeIdeal
 import Mathlib.Order.PrimeSeparator
 
+#check DistribLattice
 /-
 Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
 -/
 
-set_option autoImplicit false
+/-set_option autoImplicit false-/
 
-variable {A : Type*} [Lattice A] [BoundedOrder A]
-variable {B : Type*} [Lattice B] [BoundedOrder B]
+
+open Order Ideal Set
+
+variable {A : Type*} [DistribLattice A] [BoundedOrder A]
+variable {B : Type*} [DistribLattice B] [BoundedOrder B]
 
 def ikernel (h : A → B) := { x : A | h x = ⊥ }
 
@@ -41,8 +45,20 @@ instance instIsPrimeIkernel (h : BoundedLatticeHom A Bool) : Order.Ideal.IsPrime
   simp
   cases (h x) <;> simp
 
-theorem prime_ideal_is_kernel (D: BddDistLat):
-∀ (I : PrimeIdeal), ∃ (h: BoundedLatticeHom D Bool), IsPrimeIdeal (kernel h) := _
+theorem prime_ideal_is_kernel (I : Ideal A):
+IsPrime I -> ∃ (h : A → Bool), I = ikernel h := by
+  intros Ip
+  have h : BoundedLatticeHom A Bool := {
+    toFun := sorry
+    map_sup' := sorry
+    map_inf' := sorry
+    map_top' := sorry
+    map_bot' := sorry
+  }
+  have h' : I = ikernel h := sorry
+  exact ⟨h , h'⟩
+
+
 
 /- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
 Theorem. Let D be a bounded distributive lattice.
