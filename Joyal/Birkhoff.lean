@@ -1,8 +1,7 @@
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.Category.BddDistLat
 import Mathlib.Order.PrimeIdeal
-
-/- import Mathlib.Order.PrimeSeparator -/
+import Mathlib.Order.PrimeSeparator
 
 /-
 Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
@@ -14,6 +13,8 @@ variable {A : Type*} [Lattice A] [BoundedOrder A]
 variable {B : Type*} [Lattice B] [BoundedOrder B]
 
 def ikernel (h : A → B) := { x : A | h x = ⊥ }
+
+@[simp] theorem mem_ikernel (h : A → B) (a : A) : a ∈ ikernel h ↔ h a = ⊥ := .rfl
 
 def Ikernel (h : BoundedLatticeHom A B) : Order.Ideal A where
   carrier := ikernel h
@@ -27,21 +28,21 @@ def Ikernel (h : BoundedLatticeHom A B) : Order.Ideal A where
     dsimp [ikernel] at *
     use (x ⊔ y) ; simp [hx, hy]
 
+@[simp] theorem mem_Ikernel (h : BoundedLatticeHom A B) (a : A) : a ∈ Ikernel h ↔ h a = ⊥ := .rfl
+
 instance instIsPrimeIkernel (h : BoundedLatticeHom A Bool) : Order.Ideal.IsPrime (Ikernel h) := by
   have: Order.Ideal.IsProper (Ikernel h) := by
-    constructor
-    intro H
-    have Mario1 : (SetLike.coe (Ikernel h) ) ⊤ := by simp [H] ; exact True.intro
-    have G : h ⊤ = ⊥ := by exact Mario1
-    rw [map_top] at G
-    exact (Bool.eq_not_self ⊤).mp G
+    apply Order.Ideal.isProper_of_not_mem (p := ⊤)
+    intro (H : h ⊤ = ⊥)
+    rw [map_top] at H
+    exact (Bool.eq_not_self ⊤).mp H
   apply Order.Ideal.IsPrime.of_mem_or_mem
   intro x y
-  simp [Ikernel, ikernel, Membership.mem, Set.Mem, SetLike.coe, setOf]
+  simp
   cases (h x) <;> simp
 
 theorem prime_ideal_is_kernel (D: BddDistLat):
-∀ (I : PrimeIdeal) ∃ (h: BoundedLatticeHom D Bool), IsPrimeIdeal (kernel h)
+∀ (I : PrimeIdeal), ∃ (h: BoundedLatticeHom D Bool), IsPrimeIdeal (kernel h) := _
 
 /- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
 Theorem. Let D be a bounded distributive lattice.
