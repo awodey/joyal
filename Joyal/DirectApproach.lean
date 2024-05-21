@@ -137,7 +137,7 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
               simp at hS
               clear eq S
               cases hS with | intro Lηpηq hL =>
-
+              sorry
 
 
 

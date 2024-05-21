@@ -23,26 +23,34 @@ and similarly for the other meets and joins,
 so η is a lattice homomorphism.
 Moreover, if p ̸= q ∈ H then we have that η(p) ̸= η(q),
 by the Prime Ideal Theorem.
+
 Thus it only remains to show that
-η(p ⇒ q) = η(p)⇒η(q).
+η(p ⇒ q) = η(p)⇒η(q) as LowerSets in Spec(H)
+
 Unwinding the definitions, this means that,
 for all f ∈ DLat(H, 2),
-f(p⇒q)=1 iff forall g≥f, g(p)=1 implies g(q)=1.
-Equivalently, for all prime filters F ⊆ H,
-p⇒q∈F iff for all prime G⊇F, p∈G implies q∈G.
+            = PrimeIdeals(H)
+            = PrimeFilters(H)
+p⇒q ∈ F iff for all prime filters G ⊇ F,
+p ∈ G implies q ∈ G,
+by the definition of => in Spec(H).
+
 Now if p ⇒ q ∈ F, then for all (prime) filters G ⊇ F,
 also p ⇒ q ∈ G, and so p ∈ G implies q ∈ G,
 since (p ⇒ q) ∧ p ≤ q.
-Conversely, suppose p⇒q /∈F,
-and we seek a prime filter G⊇F with p∈G but q ̸∈ G.
+
+Conversely, suppose p ⇒ q not ∈ F.
+We seek a prime filter G ⊇ F with p ∈ G but not q ∈ G.
+
 Consider the filter
-F [p] = {x ∧ p ≤ h ∈ H | x ∈ F } ,
+
+F[p] = { h ∈ H | x ∧ p ≤ h for some x ∈ F } ,
+
 which is the join of F and ↑(p) in the poset of filters.
-If q ∈ F[p], then x∧p ≤ q for some x∈F,
-whence x≤p⇒q, and so p⇒q∈F,
-contrary to assumption;
-thus q/∈F[p].
-By the Prime Ideal Theorem again
-(applied to the distributive lattice H^op)
-there is a prime filter G ⊇ F[p] with q ̸∈ G.
+
+We claim that q is not ∈ F[p].
+For if q ∈ F[p], then x ∧ p ≤ q for some x ∈ F,
+whence x ≤ p ⇒ q, and so p ⇒ q ∈ F, contrary to assumption.
+
+By the Prime Ideal Theorem (applied to the distributive lattice H^op) there is a prime filter G ⊇ F[p], and therefore p ∈ G, with q not ∈ G.
 -/
