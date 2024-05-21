@@ -82,7 +82,12 @@ noncomputable def χ.hom (I : Ideal A) [isPrime_I : Ideal.IsPrime I] : BoundedLa
 
 
 
-instance instIsIkernelPrimeIdeal (I : Ideal A)[Ideal.IsPrime I]: I = Ikernel (charHom I)  := by sorry
+instance instIsIkernelPrimeIdeal (I : Ideal A)[Ideal.IsPrime I]: I = ikernel (χ I)  := by sorry
+
+theorem CharIkernelIsHom (h : BoundedLatticeHom A Bool) (a : A)
+χ (Ikernel h) a = h a := sorry
+
+
 
 
 /- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
