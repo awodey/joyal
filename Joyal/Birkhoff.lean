@@ -4,14 +4,14 @@ import Mathlib.Order.PrimeIdeal
 import Mathlib.Order.PrimeSeparator
 
 #check DistribLattice
+
+set_option autoImplicit false
+
+open Order Ideal Set Classical
+
 /-
-Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
+show first that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
 -/
-
-/-set_option autoImplicit false-/
-
-
-open Order Ideal Set
 
 variable {A : Type*} [DistribLattice A] [BoundedOrder A]
 variable {B : Type*} [DistribLattice B] [BoundedOrder B]
@@ -49,7 +49,7 @@ theorem prime_ideal_is_kernel (I : Ideal A):
 IsPrime I -> ∃ (h : A → Bool), I = ikernel h := by
   intros Ip
   have h : BoundedLatticeHom A Bool := {
-    toFun := sorry
+    toFun := fun x : A => if x ∈ I then false else true
     map_sup' := sorry
     map_inf' := sorry
     map_top' := sorry
