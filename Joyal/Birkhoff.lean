@@ -45,19 +45,28 @@ instance instIsPrimeIkernel (h : BoundedLatticeHom A Bool) : Order.Ideal.IsPrime
   simp
   cases (h x) <;> simp
 
-theorem prime_ideal_is_kernel (I : Ideal A):
-IsPrime I -> ∃ (h : A → Bool), I = ikernel h := by
-  intros Ip
-  have h : BoundedLatticeHom A Bool := {
-    toFun := fun x : A => if x ∈ I then false else true
-    map_sup' := sorry
-    map_inf' := sorry
-    map_top' := sorry
-    map_bot' := sorry
-  }
-  have h' : I = ikernel h := sorry
-  exact ⟨h , h'⟩
+noncomputable def charFun (I : Ideal A): A → Bool :=
+  fun x : A =>
+  if x ∉ I then true else false
 
+@[simp] theorem eval_charFun (I : Ideal A) (a : A) : charFun a = true ↔ a ∉ I := sorry
+
+noncomputable def charHom (I : Ideal A) [IsPrime I] : BoundedLatticeHom A Bool where
+  toFun := charFun I
+  map_sup' := by
+    intros a b
+    simp
+    sorry
+  map_inf' := by
+    intros a b
+    simp
+
+  map_top' := ⊤ ∉ I
+  map_bot' := ⊥ ∈ I
+
+
+
+instance instIsIkernelPrimeIdeal (I : Ideal A)[IsPrime I]: I = Ikernel (charHom I)  := by sorry
 
 
 /- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
