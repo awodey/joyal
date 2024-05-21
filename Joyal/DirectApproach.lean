@@ -74,6 +74,10 @@ def η (x : D) : LowerSet (Spec D)  :=
     done
     )⟩
 
+@[simp]
+def η.mem (x : D) (h : Spec D) : h ∈ η x ↔ h x = ⊤ := by
+  simp [η]
+
 def η.supHom : SupHom D (LowerSet (Spec D)) where
   toFun := η
   map_sup' x y := by
@@ -82,15 +86,15 @@ def η.supHom : SupHom D (LowerSet (Spec D)) where
     intro h
     simp [η]
 
-lemma η.bot : η (⊥ : D) = ⊥ := by
-  apply LowerSet.ext
-  apply Set.ext
-  simp [η]
+-- lemma η.bot : η (⊥ : D) = ⊥ := by
+--   apply LowerSet.ext
+--   apply Set.ext
+--   simp [η]
 
-lemma η.top : η (⊤ : D) = ⊤ := by
-  apply LowerSet.ext
-  apply Set.ext
-  simp [η]
+-- lemma η.top : η (⊤ : D) = ⊤ := by
+--   apply LowerSet.ext
+--   apply Set.ext
+--   simp [η]
 
 def η.latticeHom : LatticeHom D (LowerSet (Spec D)) where
   toFun := η
@@ -103,6 +107,51 @@ def η.latticeHom : LatticeHom D (LowerSet (Spec D)) where
 
 def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
   { η.latticeHom with
-    map_himp' := sorry
-    map_bot' := sorry
+    map_himp' := by
+      dsimp
+      simp [η.latticeHom]
+      intro p q
+      apply LowerSet.ext ; apply Set.ext
+      intro h ; simp
+      apply Iff.intro
+      · simp [himp]
+        intro hpq
+        use LowerSet.Iic h ; simp
+        intro g
+        simp
+        intro g_le_h gp
+        apply eq_top_iff.mpr
+        trans g (p ⊓ (p ⇨ q))
+        · simp only [map_inf, gp]
+          simp
+          rw [← hpq ]
+          apply g_le_h
+        · simp
+          apply inf_le_right
+      · intro hphq
+        cases hphq with | intro S H =>
+          cases H with | intro H hS =>
+            cases H with | intro L eq =>
+              simp at eq
+              rw [← eq] at hS
+              simp at hS
+              clear eq S
+              cases hS with | intro Lηpηq hL =>
+
+
+
+
+
+
+
+
+
+
+
+
+    map_bot' := by
+      dsimp
+      apply LowerSet.ext
+      apply Set.ext
+      simp [η.latticeHom, η]
   }
