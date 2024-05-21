@@ -48,9 +48,9 @@ instance instIsPrimeIkernel (h : BoundedLatticeHom A Bool) : Order.Ideal.IsPrime
 
 noncomputable def χ (I : Ideal A) (x : A) : Bool := x ∉ I
 
-@[simp] theorem χ_true (I : Ideal A) (x : A) : χ I x = true ↔ x ∉ I := by simp [χ]
+@[simp] theorem χ.true (I : Ideal A) (x : A) : χ I x = true ↔ x ∉ I := by simp [χ]
 
-@[simp] theorem χ_false (I : Ideal A) (x : A) : χ I x = false ↔ x ∈ I := by simp [χ]
+@[simp] theorem χ.false (I : Ideal A) (x : A) : χ I x = false ↔ x ∈ I := by simp [χ]
 
 noncomputable def χ.hom (I : Ideal A) [isPrime_I : Ideal.IsPrime I] : BoundedLatticeHom A Bool where
   toFun := χ I

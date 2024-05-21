@@ -12,6 +12,38 @@ Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals
 
 set_option autoImplicit false
 
+-- Lower sets form a Heyting algebra
+
+instance (P : Type*) [PartialOrder P] : HImp (LowerSet P) where
+  himp A B := sSup { X | X ⊓ A ≤ B }
+
+instance (P : Type*) [PartialOrder P] : GeneralizedHeytingAlgebra (LowerSet P)
+  where
+  le_himp_iff := by
+    intro A B C
+    apply Iff.intro
+    · intro AleB
+      trans (B ⇨ C) ⊓ B
+      · exact inf_le_inf_right B AleB
+      · rw [inf_comm]
+        apply le_trans (Order.Frame.inf_sSup_le_iSup_inf B { X | X ⊓ B ≤ C })
+        simp [sSup_le, inf_comm]
+    · intro
+      apply le_sSup
+      assumption
+
+instance (P : Type*) [PartialOrder P] : OrderBot (LowerSet P) where
+  bot_le := by simp
+
+instance (P : Type*) [PartialOrder P] : HasCompl (LowerSet P) where
+  compl A :=  A ⇨ ⊥
+
+instance (P : Type*) [PartialOrder P] : HeytingAlgebra (LowerSet P) where
+  himp_bot := by simp [compl]
+
+
+-- The spectrum of a bounded distributive lattice
+
 @[reducible]
 def Spec (E : Type*) [DistribLattice E] [BoundedOrder E] := BoundedLatticeHom E Bool
 
@@ -28,6 +60,8 @@ instance: PartialOrder (Spec D) where
     apply BoundedLatticeHom.ext
     intro x
     apply le_antisymm (gh x) (hg x)
+
+-- The embedding of a bounded distributive lattice into the lower sets of the spectrum
 
 def η (x : D) : LowerSet (Spec D)  :=
   ⟨{h | h x = ⊤},
@@ -58,37 +92,17 @@ lemma η.top : η (⊤ : D) = ⊤ := by
   apply Set.ext
   simp [η]
 
-def η.infHom : InfHom D (LowerSet (Spec D)) where
+def η.latticeHom : LatticeHom D (LowerSet (Spec D)) where
   toFun := η
+  map_sup' := η.supHom.map_sup'
   map_inf' x y := by
     apply LowerSet.ext
     apply Set.ext
     intro h
     simp [η]
 
-instance (P : Type*) [PartialOrder P] : HImp (LowerSet P) where
-  himp A B := sSup { X | X ⊓ A ≤ B }
-
-instance (P : Type*) [PartialOrder P] : GeneralizedHeytingAlgebra (LowerSet P)
-  where
-  le_himp_iff := by
-    intro A B C
-    apply Iff.intro
-    · intro AleB
-      trans (B ⇨ C) ⊓ B
-      · exact inf_le_inf_right B AleB
-      · rw [inf_comm]
-        apply le_trans (Order.Frame.inf_sSup_le_iSup_inf B { X | X ⊓ B ≤ C })
-        simp [sSup_le, inf_comm]
-    · intro
-      apply le_sSup
-      assumption
-
-instance (P : Type*) [PartialOrder P] : OrderBot (LowerSet P) where
-  bot_le := by simp
-
-instance (P : Type*) [PartialOrder P] : HasCompl (LowerSet P) where
-  compl A :=  A ⇨ ⊥
-
-instance (P : Type*) [PartialOrder P] : HeytingAlgebra (LowerSet P) where
-  himp_bot := by simp [compl]
+def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
+  { η.latticeHom with
+    map_himp' := sorry
+    map_bot' := sorry
+  }
