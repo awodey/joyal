@@ -7,7 +7,8 @@ import Mathlib.Order.PrimeSeparator
 
 set_option autoImplicit false
 
-open Order Ideal Set Classical
+open Order
+open Classical
 
 /-
 show first that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
@@ -45,28 +46,43 @@ instance instIsPrimeIkernel (h : BoundedLatticeHom A Bool) : Order.Ideal.IsPrime
   simp
   cases (h x) <;> simp
 
-noncomputable def charFun (I : Ideal A): A → Bool :=
-  fun x : A =>
-  if x ∉ I then true else false
+noncomputable def χ (I : Ideal A) (x : A) : Bool := x ∉ I
 
-@[simp] theorem eval_charFun (I : Ideal A) (a : A) : charFun a = true ↔ a ∉ I := sorry
+@[simp] theorem χ_true (I : Ideal A) (x : A) : χ I x = true ↔ x ∉ I := by simp [χ]
 
-noncomputable def charHom (I : Ideal A) [IsPrime I] : BoundedLatticeHom A Bool where
-  toFun := charFun I
+@[simp] theorem χ_false (I : Ideal A) (x : A) : χ I x = false ↔ x ∈ I := by simp [χ]
+
+noncomputable def χ.hom (I : Ideal A) [isPrime_I : Ideal.IsPrime I] : BoundedLatticeHom A Bool where
+  toFun := χ I
   map_sup' := by
     intros a b
-    simp
-    sorry
+    simp [χ]
   map_inf' := by
     intros a b
+    apply Bool.eq_iff_iff.mpr
+    simp [χ]
+    apply Iff.intro
+    · have: a ∈ I ∨ b ∈ I → a ⊓ b ∈ I := by
+        intro H
+        cases H
+        case inl aI =>
+          have ab_le_a: a ⊓ b ≤ a := by simp
+          exact I.lower ab_le_a aI
+        case inr bI =>
+          have ab_le_b: a ⊓ b ≤ b := by simp
+          exact I.lower ab_le_b bI
+      tauto
+    · have := @Ideal.IsPrime.mem_or_mem _ _ _ isPrime_I a b
+      tauto
+  map_top' := by
     simp
+    apply isPrime_I.top_not_mem
 
-  map_top' := ⊤ ∉ I
-  map_bot' := ⊥ ∈ I
+  map_bot' := by simp
 
 
 
-instance instIsIkernelPrimeIdeal (I : Ideal A)[IsPrime I]: I = Ikernel (charHom I)  := by sorry
+instance instIsIkernelPrimeIdeal (I : Ideal A)[Ideal.IsPrime I]: I = Ikernel (charHom I)  := by sorry
 
 
 /- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
