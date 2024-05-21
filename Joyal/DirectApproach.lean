@@ -4,6 +4,7 @@ import Mathlib.Order.PrimeIdeal
 import Mathlib.Order.Category.BddLat
 import Mathlib.Order.Category.DistLat
 import Mathlib.Order.Heyting.Hom
+import Mathlib.Order.PrimeSeparator
 
 import Joyal.Birkhoff
 
@@ -108,9 +109,38 @@ def η.latticeHom : LatticeHom D (LowerSet (Spec D)) where
     intro h
     simp [η]
 
+
+/- use
+theorem DistribLattice.prime_ideal_of_disjoint_filter_ideal {α : Type u_1}  [DistribLattice α]  [BoundedOrder α] {F : Order.PFilter α}  {I : Order.Ideal α}  (hFI : Disjoint ↑F ↑I) :
+∃ (J : Order.Ideal α), J.IsPrime ∧ I ≤ J ∧ Disjoint ↑F ↑J
+
+in mathlib4/Mathlib/Order/PrimeSeparator.lean
+to show the following variation needed below
+-/
+
+
 lemma Spec.pit (F : Set D) (x : D) :
-  Order.IsPFilter F → x ∉ F →  ∃ (g : Spec D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ :=
-  sorry
+  Order.IsPFilter F → x ∉ F →  ∃ (g : Spec D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ := by
+  intro Fpf xnF
+  have dFx : Disjoint F (Order.Ideal.principal x) := sorry
+  apply DistribLattice.prime_ideal_of_disjoint_filter_ideal dFx
+
+  /-
+  get (J : Order.Ideal α), J.IsPrime ∧ I ≤ J ∧ Disjoint ↑F ↑J
+  take the χ of J to get g : Spec D with g x = ⊥ , etc.
+  No duality needed!
+  -/
+
+
+
+
+
+/- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
+Theorem. Let D be a bounded distributive lattice.
+For any d ∈ D, if d ≠ ⊥, then there is a lattice homomorphism h : D → 2
+such that h(d) = ⊤.
+-/
+
 
 lemma in_himp {f : Spec D} {p q : D} :
   f ∈ η p ⇨ η q → ∀ g, g ≤ f → g p = ⊤ → g q = ⊤ := by
