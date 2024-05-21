@@ -46,11 +46,15 @@ Consider the filter
 
 F[p] = { h ∈ H | x ∧ p ≤ h for some x ∈ F } ,
 
-which is the join of F and ↑(p) in the poset of filters.
-
+F[p] is the join of F and ↑(p) in the poset of filters.
+Clearly p ∈ F[p].
 We claim that q is not ∈ F[p].
 For if q ∈ F[p], then x ∧ p ≤ q for some x ∈ F,
 whence x ≤ p ⇒ q, and so p ⇒ q ∈ F, contrary to assumption.
 
-By the Prime Ideal Theorem (applied to the distributive lattice H^op) there is a prime filter G ⊇ F[p], and therefore p ∈ G, with q not ∈ G.
+Applying the following Prime Filter Lemma, there is a prime filter G ⊇ F[p], with p ∈ G and not q ∈ G.
+
+Prime Filter Lemma. Let F be a filter with p ∈ F but not q ∈ F. Then there is a prime filter G ⊇ F with p ∈ G but not q ∈ G.
+
+Pf: Apply the Prime Ideal Theorem to the distributive lattice H^op, in which prime ideals are exactly prime filters in H.
 -/

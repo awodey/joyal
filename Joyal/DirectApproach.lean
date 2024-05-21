@@ -140,15 +140,6 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
               sorry
 
 
-
-
-
-
-
-
-
-
-
     map_bot' := by
       dsimp
       apply LowerSet.ext
