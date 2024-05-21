@@ -14,6 +14,8 @@ open Classical
 show first that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
 -/
 
+section
+
 variable {A : Type*} [DistribLattice A] [BoundedOrder A]
 variable {B : Type*} [DistribLattice B] [BoundedOrder B]
 
@@ -80,12 +82,25 @@ noncomputable def χ.hom (I : Ideal A) [isPrime_I : Ideal.IsPrime I] : BoundedLa
 
   map_bot' := by simp
 
+end
 
+section
 
-instance instIsIkernelPrimeIdeal (I : Ideal A)[Ideal.IsPrime I]: I = ikernel (χ I)  := by sorry
+variable {A : Type*} [DA : DistribLattice A] [BA : BoundedOrder A]
+variable {B : Type*} [DB : DistribLattice B] [BA : BoundedOrder B]
 
-theorem CharIkernelIsHom (h : BoundedLatticeHom A Bool) (a : A)
-χ (Ikernel h) a = h a := sorry
+-- the filter induced by an element of the spectrum
+def fkernel (h : A → B) := { x : A | h x = ⊤ }
+
+@[simp] theorem mem_fkernel (h : A → B) (a : A) : a ∈ fkernel h ↔ h a = ⊤ := .rfl
+
+def Fkernel (h : BoundedLatticeHom A B) : Order.PFilter A where
+  dual := Ikernel (BoundedLatticeHom.dual h)
+
+-- instance instIsIkernelPrimeIdeal (I : Ideal A)[Ideal.IsPrime I]: I = ikernel (χ I)  := by sorry
+
+-- theorem CharIkernelIsHom (h : BoundedLatticeHom A Bool) (a : A)
+-- χ (Ikernel h) a = h a := sorry
 
 
 
@@ -96,11 +111,11 @@ For any d ∈ D, if d ≠ ⊥, then there is a lattice homomorphism h : D → 2
 such that h(d) = ⊤.
 -/
 
-theorem birkhoff_pit :
-∀ (D : BddDistLat),
-∀ (d : D), d ≠ ⊥ →
-∃ (h : BoundedLatticeHom D Bool), h d = ⊤.
-:= sorry
+-- theorem birkhoff_pit :
+-- ∀ (D : BddDistLat),
+-- ∀ (d : D), d ≠ ⊥ →
+-- ∃ (h : BoundedLatticeHom D Bool), h d = ⊤.
+-- := sorry
 
 /- see
 DistribLattice.prime_ideal_of_disjoint_filter_ideal

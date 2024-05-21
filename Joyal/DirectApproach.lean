@@ -4,6 +4,9 @@ import Mathlib.Order.PrimeIdeal
 import Mathlib.Order.Category.BddLat
 import Mathlib.Order.Category.DistLat
 import Mathlib.Order.Heyting.Hom
+
+import Joyal.Birkhoff
+
 /- import Mathlib.Order.PrimeSeparator -/
 
 /-
@@ -105,6 +108,18 @@ def η.latticeHom : LatticeHom D (LowerSet (Spec D)) where
     intro h
     simp [η]
 
+lemma Spec.pit (F : Set D) (x : D) :
+  Order.IsPFilter F → x ∉ F →  ∃ (g : Spec D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ :=
+  sorry
+
+lemma in_himp {f : Spec D} {p q : D} :
+  f ∈ η p ⇨ η q → ∀ g, g ≤ f → g p = ⊤ → g q = ⊤ := by
+  rintro ⟨_, ⟨L, rfl⟩, ⟨_, ⟨M, rfl⟩, fL⟩⟩ g gf gpT
+  simp at M fL
+  apply M
+  simp [gpT]
+  apply L.2 gf fL
+
 def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
   { η.latticeHom with
     map_himp' := by
@@ -112,33 +127,66 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
       simp [η.latticeHom]
       intro p q
       apply LowerSet.ext ; apply Set.ext
-      intro h ; simp
+      intro f ; simp
       apply Iff.intro
       · simp [himp]
         intro hpq
-        use LowerSet.Iic h ; simp
+        use LowerSet.Iic f ; simp
         intro g
         simp
-        intro g_le_h gp
+        intro g_le_f gp
         apply eq_top_iff.mpr
         trans g (p ⊓ (p ⇨ q))
         · simp only [map_inf, gp]
           simp
           rw [← hpq ]
-          apply g_le_h
+          apply g_le_f
         · simp
           apply inf_le_right
       · intro hphq
-        cases hphq with | intro S H =>
-          cases H with | intro H hS =>
-            cases H with | intro L eq =>
-              simp at eq
-              rw [← eq] at hS
-              simp at hS
-              clear eq S
-              cases hS with | intro Lηpηq hL =>
-              sorry
+        have cat := in_himp hphq
+        rw [←Bool.not_eq_false]
+        intro fpqF
+        obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lηpηq, rfl⟩, fL⟩ := hphq
+        simp at Lηpηq fL
+        set Fp := {x : D | ∃ y : D, f y = ⊤ ∧ y ⊓ p ≤ x}
+        have filterFp : Order.IsPFilter Fp := {
+          IsLowerSet := by
+            rintro x y y_le_q ⟨z, fzT, zpx⟩
+            use z, fzT
+            apply le_trans y_le_q zpx
+          Nonempty := by
+            use ⊥, ⊤, f.map_top'
+            simp
+          Directed := by
+            rintro x ⟨x', fx'T, x'px⟩ y ⟨y', fy'T, y'py⟩
+            use x ⊔ y
+            simp [Fp]
+            use x' ⊓ y'
+            simp [fx'T, fy'T]
+            constructor
+            · trans x' ⊓ p
+              · apply inf_le_inf_right
+                apply inf_le_left
+              · assumption
+            · trans y' ⊓ p
+              · apply inf_le_inf_right
+                apply inf_le_right
+              · assumption
+        }
 
+        have qFp : q ∉ Fp := by
+          rintro ⟨y, fyT, ypq⟩
+          rw [OrderHomClass.mono f (le_himp_iff.2 ypq) fyT] at fpqF
+          cases fpqF
+        obtain ⟨g, gqB, G⟩ :=  Spec.pit Fp q filterFp qFp
+        have g_le_f : g ≤ f := by
+          intro x fxT
+          apply G
+          use x, fxT
+          simp
+        rw [cat g g_le_f (G p ⟨⊤, by simp⟩)] at gqB
+        cases gqB
 
     map_bot' := by
       dsimp
