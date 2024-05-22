@@ -1,24 +1,8 @@
-import Mathlib.Order.Lattice
-import Mathlib.Order.Category.BddDistLat
-import Mathlib.Order.PrimeIdeal
-import Mathlib.Order.Category.BddLat
-import Mathlib.Order.Category.DistLat
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.PrimeSeparator
 
 open Classical
 
--- import Joyal.Birkhoff
-
-/- import Mathlib.Order.PrimeSeparator -/
-
-/-
-Add a lemma that bdd lattice homomorphisms D → Bool correspond to prime ideals/filters.
--/
-
-set_option autoImplicit false
-
--- Stuff from Birkhoff.lean
 section
 
 variable {A : Type*} [DistribLattice A] [BoundedOrder A]
@@ -290,5 +274,3 @@ def η.OrderEmbedding : D ↪o LowerSet (Spec D) where
   toFun := η
   inj' := η.Injective
   map_rel_iff' := ⟨η.embedding, (OrderHomClass.mono η.heytingHom ·)⟩
-
-#show_unused η.OrderEmbedding η.heytingHom
