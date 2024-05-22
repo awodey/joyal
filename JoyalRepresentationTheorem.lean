@@ -3,10 +3,6 @@ import Mathlib.Order.PrimeSeparator
 
 section shouldBeInMathlib
 
-/-- The tactic `cut B` replaces goal `A` with subgoals `B → A` and `B`. Inspired by Coq. -/
-macro "cut" b:term : tactic =>
-  `(tactic| refine (?cut.imp : $b → _) ?cut.goal)
-
 /-! ## The Heyting algebra structure on the lower sets of a partial order. -/
 
 instance (P : Type*) [PartialOrder P] : HImp (LowerSet P) where
@@ -174,10 +170,11 @@ def joyalRepresentation.heytingHom {H : Type*} [HeytingAlgebra H] :
         intro g
         simp
         intro g_le_f gp
-        cut (g (p ⊓ (p ⇨ q)))
-        · simp [map_inf, gp]
-        · simp only [map_inf, gp] ; simp
-          apply g_le_f ; assumption
+        suffices g_p_pq : (g (p ⊓ (p ⇨ q))) by
+          simp [map_inf, gp] at g_p_pq
+          assumption
+        simp only [map_inf, gp] ; simp
+        apply g_le_f ; assumption
       · intro fjp_le_fjq
         by_contra not_f_pq
         obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lpq, rfl⟩, fL⟩ := fjp_le_fjq
