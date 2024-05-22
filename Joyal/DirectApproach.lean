@@ -118,19 +118,19 @@ in mathlib4/Mathlib/Order/PrimeSeparator.lean
 to show the following variation needed below
 -/
 
-
-lemma Spec.pit (F : Set D) (x : D) :
-  Order.IsPFilter F → x ∉ F →  ∃ (g : Spec D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ := by
-  intro Fpf xnF
-  have dFx : Disjoint F (Order.Ideal.principal x) := sorry
-  apply DistribLattice.prime_ideal_of_disjoint_filter_ideal dFx
-
-  /-
-  get (J : Order.Ideal α), J.IsPrime ∧ I ≤ J ∧ Disjoint ↑F ↑J
-  take the χ of J to get g : Spec D with g x = ⊥ , etc.
-  No duality needed!
-  -/
-
+lemma Spec.pit (F : Order.PFilter D) (x : D) :
+  x ∉ F →  ∃ (g : Spec D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ := by
+  intro xnF
+  have dFx : Disjoint (F : Set D) (Order.Ideal.principal x : Set D) := by
+    intro S SF Sx y yS
+    apply xnF
+    apply F.mem_of_le (Sx yS) (SF yS)
+  obtain ⟨J, ⟨PrimeJ, xJ, DFJ⟩⟩ := DistribLattice.prime_ideal_of_disjoint_filter_ideal dFx
+  use χ.hom J
+  simp at xJ
+  simp [disjoint_iff, Set.eq_empty_iff_forall_not_mem] at DFJ
+  simp [χ.hom, xJ]
+  assumption
 
 
 
@@ -180,20 +180,23 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
         obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lηpηq, rfl⟩, fL⟩ := hphq
         simp at Lηpηq fL
         set Fp := {x : D | ∃ y : D, f y = ⊤ ∧ y ⊓ p ≤ x}
-        have filterFp : Order.IsPFilter Fp := {
-          IsLowerSet := by
+        let FpP : Order.PFilter D := ⟨{
+          carrier := Fp
+          lower' := by
             rintro x y y_le_q ⟨z, fzT, zpx⟩
             use z, fzT
             apply le_trans y_le_q zpx
-          Nonempty := by
-            use ⊥, ⊤, f.map_top'
-            simp
-          Directed := by
+          nonempty' := by
+            use ⊥
+            use ⊤
+            simp [f.map_top']
+            apply le_top
+          directed' := by
             rintro x ⟨x', fx'T, x'px⟩ y ⟨y', fy'T, y'py⟩
             use x ⊔ y
             simp [Fp]
             use x' ⊓ y'
-            simp [fx'T, fy'T]
+            simp [fx'T, fy'T, OrderDual.instSup]
             constructor
             · trans x' ⊓ p
               · apply inf_le_inf_right
@@ -203,19 +206,18 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
               · apply inf_le_inf_right
                 apply inf_le_right
               · assumption
-        }
-
+        }⟩
         have qFp : q ∉ Fp := by
           rintro ⟨y, fyT, ypq⟩
           rw [OrderHomClass.mono f (le_himp_iff.2 ypq) fyT] at fpqF
           cases fpqF
-        obtain ⟨g, gqB, G⟩ :=  Spec.pit Fp q filterFp qFp
+        obtain ⟨g, gqB, gT : ∀ y ∈ Fp, g y = ⊤⟩ :=  Spec.pit FpP q qFp
         have g_le_f : g ≤ f := by
           intro x fxT
-          apply G
+          apply gT
           use x, fxT
           simp
-        rw [cat g g_le_f (G p ⟨⊤, by simp⟩)] at gqB
+        rw [cat g g_le_f (gT p ⟨⊤, by simp⟩)] at gqB
         cases gqB
 
     map_bot' := by
@@ -224,3 +226,22 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
       apply Set.ext
       simp [η.latticeHom, η]
   }
+
+theorem η.embedding {x y : D} : η x ≤ η y → x ≤ y := by
+  intro ηxy
+  by_contra x_nle_y
+  obtain ⟨g, gqB, gT⟩ := Spec.pit (Order.PFilter.principal x) y x_nle_y
+  simp at gT
+  have gyT := @ηxy g (gT x le_rfl)
+  simp [gqB] at gyT
+
+-- η qua order embedding
+
+theorem η.Injective : Function.Injective (η (D := D)) := by
+  intro x y ηxy
+  apply le_antisymm <;> (apply η.embedding ; simp [ηxy])
+
+def η.OrderEmbedding : D ↪o LowerSet (Spec D) where
+  toFun := η
+  inj' := η.Injective
+  map_rel_iff' := ⟨η.embedding, (OrderHomClass.mono η.heytingHom ·)⟩
