@@ -3,50 +3,9 @@ import Mathlib.Order.PrimeSeparator
 
 open Classical
 
-section
+section toMathlib
 
-variable {A : Type*} [DistribLattice A] [BoundedOrder A]
-variable {B : Type*} [DistribLattice B] [BoundedOrder B]
-
-noncomputable def χ (I : Order.Ideal A) (x : A) : Bool := x ∉ I
-
-@[simp] theorem χ.true (I : Order.Ideal A) (x : A) : χ I x = true ↔ x ∉ I := by simp [χ]
-
-@[simp] theorem χ.false (I : Order.Ideal A) (x : A) : χ I x = false ↔ x ∈ I := by simp [χ]
-
-noncomputable def χ.hom (I : Order.Ideal A) [isPrime_I : Order.Ideal.IsPrime I] : BoundedLatticeHom A Bool where
-  toFun := χ I
-  map_sup' := by
-    intros a b
-    simp [χ]
-  map_inf' := by
-    intros a b
-    apply Bool.eq_iff_iff.mpr
-    simp [χ]
-    apply Iff.intro
-    · have: a ∈ I ∨ b ∈ I → a ⊓ b ∈ I := by
-        intro H
-        cases H
-        case inl aI =>
-          have ab_le_a: a ⊓ b ≤ a := by simp
-          exact I.lower ab_le_a aI
-        case inr bI =>
-          have ab_le_b: a ⊓ b ≤ b := by simp
-          exact I.lower ab_le_b bI
-      tauto
-    · have := @Order.Ideal.IsPrime.mem_or_mem _ _ _ isPrime_I a b
-      tauto
-  map_top' := by
-    simp
-    apply isPrime_I.top_not_mem
-
-  map_bot' := by simp
-
-end
-
-
-
--- Lower sets form a Heyting algebra
+/-! ## The Heyting algebra structure on the lower sets of a partial order. -/
 
 instance (P : Type*) [PartialOrder P] : HImp (LowerSet P) where
   himp A B := sSup { X | X ⊓ A ≤ B }
@@ -75,28 +34,84 @@ instance (P : Type*) [PartialOrder P] : HasCompl (LowerSet P) where
 instance (P : Type*) [PartialOrder P] : HeytingAlgebra (LowerSet P) where
   himp_bot := by simp [compl]
 
--- The spectrum of a bounded distributive lattice
+end toMathlib
 
+/-- The (bounded) lattice homormophism into Bool induced by a prime ideal. -/
+noncomputable def toBoundedLatticeHom {L : Type*} [Lattice L] [BoundedOrder L]
+    (I : Order.Ideal L) [isPrime_I : Order.Ideal.IsPrime I] :
+    BoundedLatticeHom L Bool where
+
+  toFun x := x ∉ I
+
+  map_sup' := by
+    intros a b
+    simp
+
+  map_inf' := by
+    intros a b
+    apply Bool.eq_iff_iff.mpr
+    simp
+    apply Iff.intro
+    · have: a ∈ I ∨ b ∈ I → a ⊓ b ∈ I := by
+        intro H
+        cases H
+        case inl aI =>
+          have ab_le_a: a ⊓ b ≤ a := by simp
+          exact I.lower ab_le_a aI
+        case inr bI =>
+          have ab_le_b: a ⊓ b ≤ b := by simp
+          exact I.lower ab_le_b bI
+      tauto
+    · have := @Order.Ideal.IsPrime.mem_or_mem _ _ _ isPrime_I a b
+      tauto
+
+  map_top' := by
+    simp
+    apply isPrime_I.top_not_mem
+
+  map_bot' := by simp
+
+/-- The spectrum of a bounded lattice. -/
 @[reducible]
-def Spec (E : Type*) [DistribLattice E] [BoundedOrder E] := BoundedLatticeHom E Bool
+def BoundedLatticeSpectrum (L : Type*) [Lattice L] [BoundedOrder L] := BoundedLatticeHom L Bool
 
--- variable {D : Type*} [DistribLattice D] [BoundedOrder D]
-variable {D : Type*} [HeytingAlgebra D]
+variable {L : Type*} [Lattice L] [BoundedOrder L]
 
-instance: Preorder (Spec D) where
+/-- The preorder on the spectrum of a bounded lattice. Note that it is
+    *reverse* pointwise order on the homomorphisms. -/
+instance: Preorder (BoundedLatticeSpectrum L) where
   le h g := ∀ x, g x ≤ h x
   le_refl h x := le_refl (h x)
   le_trans h g l hg gl x := ge_trans (hg x) (gl x)
 
-instance: PartialOrder (Spec D) where
+/-- The partal order on the spectrum of a bounded lattice. Note that it
+    is the *reverse* pointwise order on the homomorphisms. -/
+instance: PartialOrder (BoundedLatticeSpectrum L) where
   le_antisymm h g hg gh := by
     apply BoundedLatticeHom.ext
     intro x
     apply le_antisymm (gh x) (hg x)
 
--- The embedding of a bounded distributive lattice into the lower sets of the spectrum
+variable {D : Type*} [DistribLattice D] [BoundedOrder D]
 
-def η (x : D) : LowerSet (Spec D)  :=
+/-- An auxiliary lemma specializing Birkhoff's prime ideal theorem
+    the way we use it. -/
+lemma BoundedLatticeSpectrum.exists_of_filter (F : Order.PFilter D) (x : D) :
+  x ∉ F →  ∃ (g : BoundedLatticeSpectrum D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ := by
+  intro xnF
+  have dFx : Disjoint (F : Set D) (Order.Ideal.principal x : Set D) := by
+    intro S SF Sx y yS
+    apply xnF
+    apply F.mem_of_le (Sx yS) (SF yS)
+  obtain ⟨J, ⟨PrimeJ, xJ, DFJ⟩⟩ := DistribLattice.prime_ideal_of_disjoint_filter_ideal dFx
+  use toBoundedLatticeHom J
+  simp at xJ
+  simp [disjoint_iff, Set.eq_empty_iff_forall_not_mem] at DFJ
+  simp [toBoundedLatticeHom, xJ]
+  assumption
+
+/-- The embedding of a bounded distributive lattice into the lower sets of the spectrum. -/
+def joyalRepresentation (x : L) : LowerSet (BoundedLatticeSpectrum L)  :=
   ⟨{h | h x = ⊤},
    (by
     intro h g h_le_g hx
@@ -108,82 +123,56 @@ def η (x : D) : LowerSet (Spec D)  :=
     )⟩
 
 @[simp]
-def η.mem (x : D) (h : Spec D) : h ∈ η x ↔ h x = ⊤ := by
-  simp [η]
+lemma mem_joyalRepresentation (x : L) (h : BoundedLatticeSpectrum L) :
+    h ∈ joyalRepresentation x ↔ h x = ⊤ := by
+  simp [joyalRepresentation]
 
-def η.supHom : SupHom D (LowerSet (Spec D)) where
-  toFun := η
+/-- The representation is a lattice homomorphism. -/
+def joyalRepresentation.latticeHom : LatticeHom L (LowerSet (BoundedLatticeSpectrum L)) where
+
+  toFun := joyalRepresentation
+
   map_sup' x y := by
     apply LowerSet.ext
     apply Set.ext
     intro h
-    simp [η]
+    simp [joyalRepresentation]
 
--- lemma η.bot : η (⊥ : D) = ⊥ := by
---   apply LowerSet.ext
---   apply Set.ext
---   simp [η]
-
--- lemma η.top : η (⊤ : D) = ⊤ := by
---   apply LowerSet.ext
---   apply Set.ext
---   simp [η]
-
-def η.latticeHom : LatticeHom D (LowerSet (Spec D)) where
-  toFun := η
-  map_sup' := η.supHom.map_sup'
   map_inf' x y := by
     apply LowerSet.ext
     apply Set.ext
     intro h
-    simp [η]
+    simp [joyalRepresentation]
 
+lemma joyalRepresentation.embedding {x y : D} : joyalRepresentation x ≤ joyalRepresentation y → x ≤ y := by
+  intro jxy
+  by_contra x_nle_y
+  obtain ⟨g, gqB, gT⟩ :=
+    BoundedLatticeSpectrum.exists_of_filter (Order.PFilter.principal x) y x_nle_y
+  simp at gT
+  have gyT := @jxy g (gT x le_rfl)
+  simp [gqB] at gyT
 
-/- use
-theorem DistribLattice.prime_ideal_of_disjoint_filter_ideal {α : Type u_1}  [DistribLattice α]  [BoundedOrder α] {F : Order.PFilter α}  {I : Order.Ideal α}  (hFI : Disjoint ↑F ↑I) :
-∃ (J : Order.Ideal α), J.IsPrime ∧ I ≤ J ∧ Disjoint ↑F ↑J
+/-- Joyal representation is injective. -/
+theorem joyalRepresentation.injective : Function.Injective (joyalRepresentation (L := D)) := by
+  intro x y jxy
+  apply le_antisymm <;> (apply joyalRepresentation.embedding ; simp [jxy])
 
-in mathlib4/Mathlib/Order/PrimeSeparator.lean
-to show the following variation needed below
--/
+/-- Joyal represenation qua an order embedding. -/
+def joyalRepresentation.orderEmbedding : D ↪o LowerSet (BoundedLatticeSpectrum D) where
+  toFun := joyalRepresentation
+  inj' := joyalRepresentation.injective
+  map_rel_iff' := ⟨joyalRepresentation.embedding,
+                   (OrderHomClass.mono joyalRepresentation.latticeHom ·)⟩
 
-lemma Spec.pit (F : Order.PFilter D) (x : D) :
-  x ∉ F →  ∃ (g : Spec D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ := by
-  intro xnF
-  have dFx : Disjoint (F : Set D) (Order.Ideal.principal x : Set D) := by
-    intro S SF Sx y yS
-    apply xnF
-    apply F.mem_of_le (Sx yS) (SF yS)
-  obtain ⟨J, ⟨PrimeJ, xJ, DFJ⟩⟩ := DistribLattice.prime_ideal_of_disjoint_filter_ideal dFx
-  use χ.hom J
-  simp at xJ
-  simp [disjoint_iff, Set.eq_empty_iff_forall_not_mem] at DFJ
-  simp [χ.hom, xJ]
-  assumption
+/-- Joyal representation is a Heyting algebra homomorphism. -/
+def joyalRepresentation.heytingHom {H : Type*} [HeytingAlgebra H] :
+  HeytingHom H (LowerSet (BoundedLatticeSpectrum H)) :=
+  { joyalRepresentation.latticeHom with
 
-
-
-
-/- Birkhoff's Prime Ideal Theorem for Distributive Lattices:
-Theorem. Let D be a bounded distributive lattice.
-For any d ∈ D, if d ≠ ⊥, then there is a lattice homomorphism h : D → 2
-such that h(d) = ⊤.
--/
-
-
-lemma in_himp {f : Spec D} {p q : D} :
-  f ∈ η p ⇨ η q → ∀ g, g ≤ f → g p = ⊤ → g q = ⊤ := by
-  rintro ⟨_, ⟨L, rfl⟩, ⟨_, ⟨M, rfl⟩, fL⟩⟩ g gf gpT
-  simp at M fL
-  apply M
-  simp [gpT]
-  apply L.2 gf fL
-
-def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
-  { η.latticeHom with
     map_himp' := by
       dsimp
-      simp [η.latticeHom]
+      simp [joyalRepresentation.latticeHom]
       intro p q
       apply LowerSet.ext ; apply Set.ext
       intro f ; simp
@@ -203,13 +192,12 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
         · simp
           apply inf_le_right
       · intro hphq
-        have cat := in_himp hphq
         rw [←Bool.not_eq_false]
         intro fpqF
-        obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lηpηq, rfl⟩, fL⟩ := hphq
-        simp at Lηpηq fL
-        set Fp := {x : D | ∃ y : D, f y = ⊤ ∧ y ⊓ p ≤ x}
-        let FpP : Order.PFilter D := ⟨{
+        obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lpq, rfl⟩, fL⟩ := hphq
+        simp at Lpq fL
+        set Fp := {x : H | ∃ y : H, f y = ⊤ ∧ y ⊓ p ≤ x}
+        let FpP : Order.PFilter H := ⟨{
           carrier := Fp
           lower' := by
             rintro x y y_le_q ⟨z, fzT, zpx⟩
@@ -240,37 +228,22 @@ def η.heytingHom : HeytingHom D (LowerSet (Spec D)) :=
           rintro ⟨y, fyT, ypq⟩
           rw [OrderHomClass.mono f (le_himp_iff.2 ypq) fyT] at fpqF
           cases fpqF
-        obtain ⟨g, gqB, gT : ∀ y ∈ Fp, g y = ⊤⟩ :=  Spec.pit FpP q qFp
+        obtain ⟨g, gqB, gT : ∀ y ∈ Fp, g y = ⊤⟩ := BoundedLatticeSpectrum.exists_of_filter FpP q qFp
         have g_le_f : g ≤ f := by
           intro x fxT
           apply gT
           use x, fxT
           simp
-        rw [cat g g_le_f (gT p ⟨⊤, by simp⟩)] at gqB
+        have gqT : g q = ⊤ := by
+          apply Lpq
+          simp [(gT p ⟨⊤, by simp⟩)]
+          apply L.2 g_le_f fL
+        rw [gqT] at gqB
         cases gqB
 
     map_bot' := by
       dsimp
       apply LowerSet.ext
       apply Set.ext
-      simp [η.latticeHom, η]
+      simp [joyalRepresentation.latticeHom, joyalRepresentation]
   }
-
-theorem η.embedding {x y : D} : η x ≤ η y → x ≤ y := by
-  intro ηxy
-  by_contra x_nle_y
-  obtain ⟨g, gqB, gT⟩ := Spec.pit (Order.PFilter.principal x) y x_nle_y
-  simp at gT
-  have gyT := @ηxy g (gT x le_rfl)
-  simp [gqB] at gyT
-
--- η qua order embedding
-
-theorem η.Injective : Function.Injective (η (D := D)) := by
-  intro x y ηxy
-  apply le_antisymm <;> (apply η.embedding ; simp [ηxy])
-
-def η.OrderEmbedding : D ↪o LowerSet (Spec D) where
-  toFun := η
-  inj' := η.Injective
-  map_rel_iff' := ⟨η.embedding, (OrderHomClass.mono η.heytingHom ·)⟩
