@@ -1,9 +1,11 @@
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.PrimeSeparator
 
-open Classical
+section shouldBeInMathlib
 
-section toMathlib
+/-- The tactic `cut B` replaces goal `A` with subgoals `B → A` and `B`. Inspired by Coq. -/
+macro "cut" b:term : tactic =>
+  `(tactic| refine (?cut.imp : $b → _) ?cut.goal)
 
 /-! ## The Heyting algebra structure on the lower sets of a partial order. -/
 
@@ -14,7 +16,7 @@ instance (P : Type*) [PartialOrder P] : GeneralizedHeytingAlgebra (LowerSet P)
   where
   le_himp_iff := by
     intro A B C
-    apply Iff.intro
+    constructor
     · intro AleB
       trans (B ⇨ C) ⊓ B
       · exact inf_le_inf_right B AleB
@@ -34,32 +36,26 @@ instance (P : Type*) [PartialOrder P] : HasCompl (LowerSet P) where
 instance (P : Type*) [PartialOrder P] : HeytingAlgebra (LowerSet P) where
   himp_bot := by simp [compl]
 
-end toMathlib
+end shouldBeInMathlib
 
-/-- The (bounded) lattice homormophism into Bool induced by a prime ideal. -/
-noncomputable def toBoundedLatticeHom {L : Type*} [Lattice L] [BoundedOrder L]
+/-- The (bounded) lattice homormophism into Prop induced by a prime ideal. -/
+def toBoundedLatticeHom {L : Type*} [Lattice L] [BoundedOrder L]
     (I : Order.Ideal L) [isPrime_I : Order.Ideal.IsPrime I] :
-    BoundedLatticeHom L Bool where
+    BoundedLatticeHom L Prop where
 
   toFun x := x ∉ I
 
-  map_sup' := by
-    intros a b
-    simp
+  map_sup' := by intros a b ; simp ;tauto
 
   map_inf' := by
     intros a b
-    apply Bool.eq_iff_iff.mpr
     simp
-    apply Iff.intro
+    constructor
     · have: a ∈ I ∨ b ∈ I → a ⊓ b ∈ I := by
-        intro H
-        cases H
-        case inl aI =>
-          have ab_le_a: a ⊓ b ≤ a := by simp
+        rintro (aI | bI)
+        · have ab_le_a: a ⊓ b ≤ a := by simp
           exact I.lower ab_le_a aI
-        case inr bI =>
-          have ab_le_b: a ⊓ b ≤ b := by simp
+        · have ab_le_b: a ⊓ b ≤ b := by simp
           exact I.lower ab_le_b bI
       tauto
     · have := @Order.Ideal.IsPrime.mem_or_mem _ _ _ isPrime_I a b
@@ -73,7 +69,7 @@ noncomputable def toBoundedLatticeHom {L : Type*} [Lattice L] [BoundedOrder L]
 
 /-- The spectrum of a bounded lattice. -/
 @[reducible]
-def BoundedLatticeSpectrum (L : Type*) [Lattice L] [BoundedOrder L] := BoundedLatticeHom L Bool
+def BoundedLatticeSpectrum (L : Type*) [Lattice L] [BoundedOrder L] := BoundedLatticeHom L Prop
 
 variable {L : Type*} [Lattice L] [BoundedOrder L]
 
@@ -94,10 +90,9 @@ instance: PartialOrder (BoundedLatticeSpectrum L) where
 
 variable {D : Type*} [DistribLattice D] [BoundedOrder D]
 
-/-- An auxiliary lemma specializing Birkhoff's prime ideal theorem
-    the way we use it. -/
+/-- An auxiliary lemma specializing Birkhoff's prime ideal theorem. -/
 lemma BoundedLatticeSpectrum.exists_of_filter (F : Order.PFilter D) (x : D) :
-  x ∉ F →  ∃ (g : BoundedLatticeSpectrum D), g x = ⊥ ∧ ∀ y ∈ F, g y = ⊤ := by
+  x ∉ F →  ∃ (g : BoundedLatticeSpectrum D), ¬ (g x) ∧ ∀ y ∈ F, g y := by
   intro xnF
   have dFx : Disjoint (F : Set D) (Order.Ideal.principal x : Set D) := by
     intro S SF Sx y yS
@@ -112,14 +107,10 @@ lemma BoundedLatticeSpectrum.exists_of_filter (F : Order.PFilter D) (x : D) :
 
 /-- The embedding of a bounded distributive lattice into the lower sets of the spectrum. -/
 def joyalRepresentation (x : L) : LowerSet (BoundedLatticeSpectrum L)  :=
-  ⟨{h | h x = ⊤},
+  ⟨{h | h x},
    (by
     intro h g h_le_g hx
-    apply top_le_iff.mp
-    trans h x
-    · apply top_le_iff.mpr hx
-    · apply h_le_g
-    done
+    apply h_le_g ; assumption
     )⟩
 
 @[simp]
@@ -150,7 +141,7 @@ lemma joyalRepresentation.embedding {x y : D} : joyalRepresentation x ≤ joyalR
   obtain ⟨g, gqB, gT⟩ :=
     BoundedLatticeSpectrum.exists_of_filter (Order.PFilter.principal x) y x_nle_y
   simp at gT
-  have gyT := @jxy g (gT x le_rfl)
+  have gyT := @jxy g (by simp ; exact gT x le_rfl)
   simp [gqB] at gyT
 
 /-- Joyal representation is injective. -/
@@ -176,32 +167,27 @@ def joyalRepresentation.heytingHom {H : Type*} [HeytingAlgebra H] :
       intro p q
       apply LowerSet.ext ; apply Set.ext
       intro f ; simp
-      apply Iff.intro
+      constructor
       · simp [himp]
-        intro hpq
+        intro fpq
         use LowerSet.Iic f ; simp
         intro g
         simp
         intro g_le_f gp
-        apply eq_top_iff.mpr
-        trans g (p ⊓ (p ⇨ q))
-        · simp only [map_inf, gp]
-          simp
-          rw [← hpq ]
-          apply g_le_f
-        · simp
-          apply inf_le_right
-      · intro hphq
-        rw [←Bool.not_eq_false]
-        intro fpqF
-        obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lpq, rfl⟩, fL⟩ := hphq
+        cut (g (p ⊓ (p ⇨ q)))
+        · simp [map_inf, gp]
+        · simp only [map_inf, gp] ; simp
+          apply g_le_f ; assumption
+      · intro fjp_le_fjq
+        by_contra not_f_pq
+        obtain ⟨_, ⟨L, rfl⟩, _, ⟨Lpq, rfl⟩, fL⟩ := fjp_le_fjq
         simp at Lpq fL
-        set Fp := {x : H | ∃ y : H, f y = ⊤ ∧ y ⊓ p ≤ x}
+        set Fp := {x : H | ∃ y : H, f y ∧ y ⊓ p ≤ x}
         let FpP : Order.PFilter H := ⟨{
           carrier := Fp
           lower' := by
-            rintro x y y_le_q ⟨z, fzT, zpx⟩
-            use z, fzT
+            rintro x y y_le_q ⟨z, fz, zpx⟩
+            use z, fz
             apply le_trans y_le_q zpx
           nonempty' := by
             use ⊥
@@ -225,21 +211,19 @@ def joyalRepresentation.heytingHom {H : Type*} [HeytingAlgebra H] :
               · assumption
         }⟩
         have qFp : q ∉ Fp := by
-          rintro ⟨y, fyT, ypq⟩
-          rw [OrderHomClass.mono f (le_himp_iff.2 ypq) fyT] at fpqF
-          cases fpqF
-        obtain ⟨g, gqB, gT : ∀ y ∈ Fp, g y = ⊤⟩ := BoundedLatticeSpectrum.exists_of_filter FpP q qFp
+          rintro ⟨r, fr, rp_q⟩
+          apply not_f_pq
+          apply (OrderHomClass.mono f (le_himp_iff.2 rp_q)) fr
+        obtain ⟨g, gqB, gT : ∀ y ∈ Fp, g y⟩ := BoundedLatticeSpectrum.exists_of_filter FpP q qFp
+        apply gqB ; apply Lpq
         have g_le_f : g ≤ f := by
           intro x fxT
           apply gT
           use x, fxT
           simp
-        have gqT : g q = ⊤ := by
-          apply Lpq
-          simp [(gT p ⟨⊤, by simp⟩)]
-          apply L.2 g_le_f fL
-        rw [gqT] at gqB
-        cases gqB
+        constructor
+        · apply L.2 g_le_f fL
+        · exact gT p ⟨⊤, by simp⟩
 
     map_bot' := by
       dsimp
