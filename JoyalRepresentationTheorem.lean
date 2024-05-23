@@ -109,11 +109,6 @@ def joyalRepresentation (x : L) : LowerSet (BoundedLatticeSpectrum L)  :=
     apply h_le_g ; assumption
     )⟩
 
-@[simp]
-lemma mem_joyalRepresentation (x : L) (h : BoundedLatticeSpectrum L) :
-    h ∈ joyalRepresentation x ↔ h x = ⊤ := by
-  simp [joyalRepresentation]
-
 /-- The representation is a lattice homomorphism. -/
 def joyalRepresentation.latticeHom : LatticeHom L (LowerSet (BoundedLatticeSpectrum L)) where
 
@@ -138,7 +133,8 @@ lemma joyalRepresentation.embedding {x y : D} : joyalRepresentation x ≤ joyalR
     BoundedLatticeSpectrum.exists_of_filter (Order.PFilter.principal x) y x_nle_y
   simp at gT
   have gyT := @jxy g (by simp ; exact gT x le_rfl)
-  simp [gqB] at gyT
+  simp [gqB, joyalRepresentation] at gyT
+
 
 /-- Joyal representation is injective. -/
 theorem joyalRepresentation.injective : Function.Injective (joyalRepresentation (L := D)) := by
@@ -168,7 +164,7 @@ def joyalRepresentation.heytingHom {H : Type*} [HeytingAlgebra H] :
         intro fpq
         use LowerSet.Iic f ; simp
         intro g
-        simp
+        simp [joyalRepresentation]
         intro g_le_f gp
         suffices g_p_pq : (g (p ⊓ (p ⇨ q))) by
           simp [map_inf, gp] at g_p_pq
