@@ -6,4 +6,4 @@ The classic Stone representation theorem states that every Boolean algebra embed
 
 The theorem generalizes the Stone representation theorem and implies the Kripke completeness of intuitionistic propositional logic. (We do not formalize these facts.)
 
-The formalization was done by Steve Awodey, Andrej Bauer and Mario Carneiro during the trimester Program “Prospects of Formal Mathematics“ at the [Hausdorff Research Institute for Mathematics](https://www.mathematics.uni-bonn.de/him).
+The formalization was done by Steve Awodey, Andrej Bauer and Mario Carneiro during the trimester Program “Prospects of Formal Mathematics“ at the [Hausdorff Research Institute for Mathematics](https://www.mathematics.uni-bonn.de/him), funded by the Deutsche Forschungsgemeinschaft under Germany ́s Excellence Strategy – EXC-2047/1 – 390685813.
