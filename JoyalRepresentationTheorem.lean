@@ -1,3 +1,7 @@
+/- The formalization was done by Steve Awodey, Andrej Bauer and Mario Carneiro during the trimester Program “Prospects of Formal Mathematics“ at the Hausdorff Research Institute for Mathematics, funded by the Deutsche Forschungsgemeinschaft under Germany ́s Excellence Strategy – EXC-2047/1 – 390685813.
+-/
+
+
 import Mathlib.Order.Heyting.Hom
 import Mathlib.Order.PrimeSeparator
 
